@@ -50,27 +50,30 @@ class Item:
         
     @property
     def price(self):
-        self._price
+        return self._price
         
     @title.setter
-    def title(self, title, cat_id, price):
+    def title(self, title):
         self._ismodified = True
         self._title = title
-        self._category_id = cat_id
+    
+    @category_id.setter
+    def category_id(self, category_id):
+        self._ismodified = True
+        self._category_id = category_id
+        
+    @price.setter
+    def price(self, price):
+        self._ismodified = True
         self._price = price
-    #def title(self, title): # doesnt work as weel
-    #    self._ismodified = True
-    #    self._title = title
-    #    self._category_id = 2
-    #    self._price = 1.4
         
     def __load(self, _newid):
-        cursor = self.conn.cursor(cursorfactory=DictCursor)
+        cursor = self.conn.cursor(cursor_factory=DictCursor)
         cursor.execute(
             f'SELECT * FROM "item" WHERE id = {_newid}'
         )
         item = cursor.fetchone()
-        curson.close()
+        cursor.close()
         
         if not item:
             raise DbException(f'There is no such ID in TABLE as({_newid})')
@@ -82,19 +85,19 @@ class Item:
         if not self._ismodified:
             return
         
-        cursor = self.conn.cursor(cursorfactory=DictCursor)
+        cursor = self.conn.cursor(cursor_factory=DictCursor)
         if self.id:
             cursor.execute(
                 f'UPDATE TABLE "item"'
-                ' SET category_id = \'{self.category_id}\''
-                    'title = \'{self.title}\''
-                    'price = \'{self.price}\''
-                    'WHERE id = {self.id}'
+                f' SET category_id = \'{self.category_id}\''
+                f' title = \'{self.title}\''
+                f' price = \'{self.price}\''
+                f' WHERE id = {self.id}'
             )
         else:
             cursor.execute(
                 f'INSERT INTO "item" (category_id, title, price)'
-                'VALUES (\'{self.category_id}\', \'{self.title}\', \'{self.price}\') RETURNING id'
+                f' VALUES ({self.category_id}, \'{self.title}\', {self.price}) RETURNING id'
             )
             self._id = cursor.fetchone()['id']
             
